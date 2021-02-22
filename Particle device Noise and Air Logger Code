@@ -1,0 +1,92 @@
+// This #include statement was automatically added by the Particle IDE.
+#include "lib2.h"
+
+// This #include statement was automatically added by the Particle IDE.
+#include "lib1.h"
+
+#define AIR_SENSOR A0
+#define SOUND_SENSOR A4
+
+// Set whether you want the device to publish data to the internet by default here.
+// 1 will Particle.publish AND Serial.print, 0 will just Serial.print
+// Extremely useful for saving data while developing close enough to have a cable plugged in.
+// You can also change this remotely using the Particle.function "tmode" defined in setup()
+int transmittingData = 1;
+
+// Used to keep track of the last time we published data
+long lastPublish = 0;
+
+// How many minutes between publishes? 10+ recommended for long-time continuous publishing!
+
+void setup() {
+    // Opens up a Serial port so you can listen over USB
+    Serial.begin(9600);
+    
+    pinMode(SOUND_SENSOR, INPUT);
+    
+    // Requested to add from WebHook
+    Particle.subscribe("hook-response/soundNAir", myHandler, MY_DEVICES);
+
+}
+
+
+void myHandler(const char *event, const char *data) {
+  // Handle the integration response
+}
+          
+
+
+void loop() {
+     // Get some data
+    String data = String(10);
+  
+
+    long sumSound = 0;
+    long sumAir = 0;
+    
+    for(int i=0; i<32; i++)
+    {
+        sumSound += analogRead(SOUND_SENSOR);
+        sumAir += analogRead(AIR_SENSOR);
+    }
+
+    sumSound >>= 5;
+    sumAir >>= 5;
+    // ThingSPeak Integration - THIS WORKS for a single PARAM!
+    Particle.publish("SoundLevel", String(sumSound), PRIVATE);
+    Particle.publish("AirQuality", String(sumAir), PRIVATE);
+
+    //char buffer[10];
+    //itoa(sumSound, buffer,10);        
+    
+
+    // digitalWrite(led, HIGH);   // Turn ON the LED
+    
+    //char buffer[10];
+    //itoa (sumSound, buffer, 10);
+    
+      // digitalWrite(led, LOW);    // Turn OFF the LED
+  
+    // Trigger the integration
+    // Particle.publish("SendSoundLevel", data, PRIVATE);
+    // Wait 60 seconds
+    delay(60000);
+
+    // *char buffer[10];
+    // *itoa(sumSound, buffer,10);        
+    //Particle.publish("NoiseLevel", buffer, 60, PRIVATE);
+    // *Particle.publish("SendSoundLevel", buffer, 60, PRIVATE);
+    // *Particle.publish("sound",buffer);// this is for sending to inisialstate
+    
+    //  itoa(sumAir, buffer,10);    
+    //  Particle.publish("AirPollution", buffer, 60, PRIVATE);
+    // Wait 60 seconds
+    // *delay(60000);
+  
+
+  
+// This custom version of delay() ensures that the gps object
+// is being "fed".
+
+
+}
