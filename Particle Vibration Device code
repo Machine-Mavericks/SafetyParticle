@@ -1,0 +1,67 @@
+// This #include statement was automatically added by the Particle IDE.
+//#include "lib2.h"
+
+// This #include statement was automatically added by the Particle IDE.
+//#include "lib1.h"
+
+#define VIBRATION_SENSOR D2
+
+// Set whether you want the device to publish data to the internet by default here.
+// 1 will Particle.publish AND Serial.print, 0 will just Serial.print
+// Extremely useful for saving data while developing close enough to have a cable plugged in.
+// You can also change this remotely using the Particle.function "tmode" defined in setup()
+int transmittingData = 1;
+
+// Used to keep track of the last time we published data
+long lastPublish = 0;
+
+// How many minutes between publishes? 10+ recommended for long-time continuous publishing!
+
+void setup() {
+    // Opens up a Serial port so you can listen over USB
+    Serial.begin(9600);
+    pinMode(VIBRATION_SENSOR, INPUT);
+    // Requested to add from WebHook
+    Particle.subscribe("hook-response/Vibration", myHandler, MY_DEVICES);
+}
+
+
+void myHandler(const char *event, const char *data) {
+  // Handle the integration response
+}
+          
+int emailSendCount = 0;
+
+void loop() {
+     // Get some data
+    String data = String(10);
+    long sumVib = 0;
+    long milliRead = 0;
+    
+    // Take a minute of millisecond measurements to determine how "jittery" things are
+    for(int i=0; i<30000; i++) {
+        milliRead = digitalRead(VIBRATION_SENSOR);
+        // Invert the read as the sensor reads 0 for vibration and 1 for no vibration and we count good vibrations.
+        if (milliRead == 0) {
+            milliRead = 1;
+        }
+        else {
+            milliRead = 0;
+        }
+        sumVib += milliRead;
+        delay (10);
+    }
+
+    // "Vibration" sends to a webhook that updates ThingSpeak
+    Particle.publish("Vibration", String(sumVib), PRIVATE);
+    
+    // if the thing jitters less than a hundred times in a cycle, email an alert, once.
+    if (sumVib <= 100 && emailSendCount == 0) {
+        Particle.publish("EmailAlert", String(sumVib), PRIVATE);
+        emailSendCount = 1;
+    }
+    
+    // Wait 60 seconds
+    //delay(1000);
+
+}
